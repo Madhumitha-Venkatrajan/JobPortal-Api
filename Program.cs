@@ -1,5 +1,6 @@
 
 using JobPortalAPI.DataAccessLayer;
+using JobPortalAPI.Handler;
 using JobPortalAPI.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -15,7 +16,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var _authkey = builder.Configuration.GetValue<string>("jwtsettings:securitykey");
+var _authkey = builder.Configuration.GetValue<string>("JwtSettings:securitykey");
 builder.Services.AddAuthentication(item =>
 {
     item.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -47,6 +48,7 @@ builder.Services.AddScoped<IPersonDataAccess, PersonDataAccess>();
 builder.Services.AddScoped<IJobDataAccess, JobDataAccess>();
 builder.Services.AddScoped<IAppliedJob, ApplyJobDataAccess>();
 builder.Services.AddScoped<IAppliedJob, ApplyJobDataAccess>();
+builder.Services.AddScoped<IRefereshTokenGenerator, RefereshTokenGenerator>();
 
 
 var _jwtsettings = builder.Configuration.GetSection("JwtSettings");
@@ -66,6 +68,7 @@ app.UseHttpsRedirection();
 
 app.UseCors();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

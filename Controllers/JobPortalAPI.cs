@@ -44,6 +44,7 @@ namespace JobPortalAPI.Controllers
 
         // GET: api/<JobPortalAPI>
         [HttpGet("{emailID}")]
+        [Authorize(Roles = "Job Seeker")]
         public async Task<Person> Get(string emailID)
         {
             try
@@ -63,7 +64,7 @@ namespace JobPortalAPI.Controllers
         {
             var token = new JwtSecurityToken(
       claims: claims,
-      expires: DateTime.Now.AddSeconds(20),
+      expires: DateTime.Now.AddMinutes(1),
       signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.securitykey)), SecurityAlgorithms.HmacSha256)
             );
             var jwttoken = new JwtSecurityTokenHandler().WriteToken(token);
@@ -77,12 +78,17 @@ namespace JobPortalAPI.Controllers
             };
         }
 
-        [HttpGet]
-        [Route("{emailID}/{password}")]
-        public async Task<ActionResult> ValidateUser(string emailID, string password)
+        [HttpGet("GetToken")]
+        
+        public async Task<ActionResult> ValidateUser()
         {
             try
             {
+                var emailID = Encoding.GetEncoding("iso-8859-1").GetString(Convert.FromBase64String(Request.Headers["Authorization"].
+                    ToString().Substring("Basic ".Length).Trim())).Split(":")[0];
+                var password = Encoding.GetEncoding("iso-8859-1").GetString(Convert.FromBase64String(Request.Headers["Authorization"].
+                    ToString().Substring("Basic ".Length).Trim())).Split(":")[1];
+
                 var userInfo = await _personDataAccess.GetPerson(emailID);
                 if (userInfo != null)
                 {
@@ -96,7 +102,7 @@ namespace JobPortalAPI.Controllers
                             Subject = new ClaimsIdentity(
                     new Claim[] { new Claim(ClaimTypes.Email, userInfo.EmailID), new Claim(ClaimTypes.Role, userInfo.RoleName) }
                                                         ),
-                            Expires = DateTime.Now.AddMinutes(20),
+                            Expires = DateTime.Now.ToUniversalTime().AddMinutes(1),
                             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
                         };
                         var token = tokenhandler.CreateToken(tokendesc);
@@ -134,7 +140,7 @@ namespace JobPortalAPI.Controllers
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(tokenkey),
                 ValidateIssuer = false,
-                ValidateAudience = false,
+                ValidateAudience = false
 
             }, out securityToken);
 
@@ -143,7 +149,7 @@ namespace JobPortalAPI.Controllers
             {
                 return Unauthorized();
             }
-            var EmailID = principal.Identity?.Name;
+            var EmailID = principal.Claims.ToList().FirstOrDefault(x => x.Type == ClaimTypes.Email).Value;
 
             var user = await _refereshTokenGenerator.GetRefreshToken(EmailID, tokenResponse.refreshtoken);
             if (user == null)
@@ -153,9 +159,9 @@ namespace JobPortalAPI.Controllers
 
             return Ok(response);
         }
-    
 
-    [HttpGet]
+        [Authorize(Roles = "Job Seeker")]
+        [HttpGet]
         [Route("allJobs")]
         public async Task<List<Job>> GetAsync()
         {
@@ -172,7 +178,7 @@ namespace JobPortalAPI.Controllers
 
         }
 
-
+        
         // POST api/<JobPortalAPI>
         [HttpPost]
         public async Task<IResult> Post(Person person)
@@ -214,7 +220,7 @@ namespace JobPortalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Job Seeker")]
         // POST api/<JobPortalAPI>
         [HttpPost]
         [Route("appliedJobs")]
@@ -248,8 +254,9 @@ namespace JobPortalAPI.Controllers
         {
         }
 
-        // DELETE api/<JobPortalAPI>/5
 
+        [Authorize(Roles = "Admin")]
+        // DELETE api/<JobPortalAPI>/5
         [HttpDelete]
         [Route("DeleteNullPerson")]
         public void Delete()
