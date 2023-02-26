@@ -8,15 +8,14 @@ namespace JobPortalAPI.Model
         public string Name { get; set; }
         [Required(ErrorMessage = "Phone Number is required")]
         public string PhoneNumber { get; set; }
-        [Required()]
-        public string EmailID { get; set; }
-        [Required]
-        public string Password { get; set; }
-        [Required]
-        public string ConfirmPassword { get; set; }
-        public string RoleName { get; set; }
+        
+        public string? EmailID { get; set; }
+      
+        public string? Password { get; set; }
+        
+        public int RoleID { get; set; }
 
-
+        public string? RoleName { get; set; }
     }
 
 }

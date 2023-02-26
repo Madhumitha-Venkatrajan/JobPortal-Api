@@ -43,8 +43,8 @@ namespace JobPortalAPI.Controllers
 
 
         // GET: api/<JobPortalAPI>
-        [HttpGet("{emailID}")]
         [Authorize(Roles = "Job Seeker")]
+        [HttpGet("{emailID}")]
         public async Task<Person> Get(string emailID)
         {
             try
@@ -64,30 +64,31 @@ namespace JobPortalAPI.Controllers
         {
             var token = new JwtSecurityToken(
       claims: claims,
-      expires: DateTime.Now.AddMinutes(1),
+      expires: DateTime.Now.AddMinutes(20),
       signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.securitykey)), SecurityAlgorithms.HmacSha256)
             );
             var jwttoken = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return new TokenResponse() { 
-                jwttoken = jwttoken, 
+            return new TokenResponse()
+            {
+                jwttoken = jwttoken,
                 refreshtoken = await _refereshTokenGenerator.GenerateToken(
-                    claims.Single(x => x.Type == ClaimTypes.Email).Value, 
-                    claims.Single(x => x.Type == ClaimTypes.Role).Value, 
-                    jwttoken) 
+                    claims.Single(x => x.Type == ClaimTypes.Email).Value,
+                    claims.Single(x => x.Type == ClaimTypes.Role).Value,
+                    jwttoken)
             };
         }
 
         [HttpGet("GetToken")]
-        
+
         public async Task<ActionResult> ValidateUser()
         {
             try
             {
-                var emailID = Encoding.GetEncoding("iso-8859-1").GetString(Convert.FromBase64String(Request.Headers["Authorization"].
-                    ToString().Substring("Basic ".Length).Trim())).Split(":")[0];
-                var password = Encoding.GetEncoding("iso-8859-1").GetString(Convert.FromBase64String(Request.Headers["Authorization"].
-                    ToString().Substring("Basic ".Length).Trim())).Split(":")[1];
+                var cred = Encoding.GetEncoding("iso-8859-1").GetString(Convert.FromBase64String(Request.Headers["Authorization"].
+                    ToString().Substring("Basic ".Length).Trim()));
+                var emailID = cred.Split(":")[0];
+                var password = cred.Split(":")[1];
 
                 var userInfo = await _personDataAccess.GetPerson(emailID);
                 if (userInfo != null)
@@ -102,7 +103,7 @@ namespace JobPortalAPI.Controllers
                             Subject = new ClaimsIdentity(
                     new Claim[] { new Claim(ClaimTypes.Email, userInfo.EmailID), new Claim(ClaimTypes.Role, userInfo.RoleName) }
                                                         ),
-                            Expires = DateTime.Now.ToUniversalTime().AddMinutes(1),
+                            Expires = DateTime.Now.ToUniversalTime().AddMinutes(20),
                             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
                         };
                         var token = tokenhandler.CreateToken(tokendesc);
@@ -111,7 +112,7 @@ namespace JobPortalAPI.Controllers
                         var response = new TokenResponse()
                         {
                             jwttoken = finaltoken,
-                            refreshtoken = await _refereshTokenGenerator.GenerateToken(emailID, userInfo.RoleName,finaltoken)
+                            refreshtoken = await _refereshTokenGenerator.GenerateToken(emailID, userInfo.RoleName, finaltoken)
                         };
 
                         return Ok(response);
@@ -160,7 +161,7 @@ namespace JobPortalAPI.Controllers
             return Ok(response);
         }
 
-        [Authorize(Roles = "Job Seeker")]
+        //  [Authorize(Roles = "Job Seeker")]
         [HttpGet]
         [Route("allJobs")]
         public async Task<List<Job>> GetAsync()
@@ -178,18 +179,77 @@ namespace JobPortalAPI.Controllers
 
         }
 
-        
+
         // POST api/<JobPortalAPI>
-        [HttpPost]
-        public async Task<IResult> Post(Person person)
+        //[HttpPost]
+        //public async Task<IResult> Post(Person person)
+        //{
+        //    try
+        //    {
+        //        var password = Encoding.GetEncoding("iso-8859-1").GetString(Convert.FromBase64String(Request.Headers["Authorization"].
+        //            ToString().Substring("Basic ".Length).Trim()));
+
+        //        var existingUser = await _personDataAccess.GetPerson(person.EmailID);
+        //        if (existingUser == null)
+        //        {
+        //            await _personDataAccess.SavePerson(person, password);
+
+        //            return Results.Created("", person);
+        //        }
+        //        return Results.BadRequest("Email already exists.");
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine(e);
+        //        throw;
+        //    }
+
+        //}
+
+
+
+        [HttpPost("SignUp")]
+
+        public async Task<IResult> CreateAccountWithToken([FromBody] Person person)
         {
             try
             {
-                var existingUser = await _personDataAccess.GetPerson(person.EmailID);
+                var cred = Encoding.GetEncoding("iso-8859-1").GetString(Convert.FromBase64String(Request.Headers["Authorization"].
+                    ToString().Substring("Basic ".Length).Trim()));
+                var emailID = cred.Split(":")[0];
+                var password = cred.Split(":")[1];
+
+                var existingUser = await _personDataAccess.GetPerson(emailID);
                 if (existingUser == null)
                 {
-                    await _personDataAccess.SavePerson(person);
-                    return Results.Created("", person);
+                    await _personDataAccess.SavePerson(person, emailID, password);
+                    var userInfo = await _personDataAccess.GetPerson(emailID);
+                    /// Generate Token
+                    var tokenhandler = new JwtSecurityTokenHandler();
+                    var tokenkey = Encoding.UTF8.GetBytes(_jwtSettings.securitykey);
+                    var tokendesc = new SecurityTokenDescriptor
+                    {
+                        Subject = new ClaimsIdentity(
+                new Claim[] { new Claim(ClaimTypes.Email, userInfo.EmailID), new Claim(ClaimTypes.Role, userInfo.RoleName) }
+                                                    ),
+                        Expires = DateTime.Now.ToUniversalTime().AddMinutes(20),
+                        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
+                    };
+                    var token = tokenhandler.CreateToken(tokendesc);
+                    string finaltoken = tokenhandler.WriteToken(token);
+
+                    var response = new TokenResponse()
+                    {
+                        jwttoken = finaltoken,
+                        refreshtoken = await _refereshTokenGenerator.GenerateToken(userInfo.EmailID, userInfo.RoleName, finaltoken)
+                    };
+                    var createPersonResponse = new CreatePersonResponse()
+                    {
+                        Person = person,
+                        response = response
+                    };
+
+                    return Results.Created("", createPersonResponse);
                 }
                 return Results.BadRequest("Email already exists.");
             }
@@ -198,8 +258,9 @@ namespace JobPortalAPI.Controllers
                 Console.WriteLine(e);
                 throw;
             }
-
         }
+
+
         [Authorize(Roles = "Job Provider")]
         // POST api/<JobPortalAPI>
         [HttpPost]

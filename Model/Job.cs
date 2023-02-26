@@ -11,6 +11,7 @@
         public string Location { get; set; }
 
         public int JobID { get; set; }
+       // public string JobDescription {get; set;}
 
     }
 }

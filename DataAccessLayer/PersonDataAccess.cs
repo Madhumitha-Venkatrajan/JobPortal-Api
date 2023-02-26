@@ -35,7 +35,6 @@ namespace JobPortalAPI.DataAccessLayer
                                 PhoneNumber = myReader["PhoneNumber"].ToString(),
                                 EmailID = myReader["EmailID"].ToString(),
                                 Password = myReader["Password"].ToString(),
-                               // ConfirmPassword = myReader["ConfirmPassword"].ToString(),
                                 RoleName=myReader["RoleName"].ToString()
                             };
 
@@ -55,11 +54,11 @@ namespace JobPortalAPI.DataAccessLayer
 
             return person;
         }
-        public async Task SavePerson(Person person)
+        public async Task SavePerson(Person person,string emailID,string password)
         {
 
-            string query = "INSERT INTO Person(Name,PhoneNumber,EmailID,Password,ConfirmPassword) " +
-                    "VALUES(@Name,@PhoneNumber,@EmailID,@Password,@ConfirmPassword)";
+            string query = "INSERT INTO Person(Name,PhoneNumber,EmailID,Password,RoleID) " +
+                    "VALUES(@Name,@PhoneNumber,@EmailID,@Password,@RoleID)";
 
 
             using (SqlConnection conn = new SqlConnection(sqlDataSource))
@@ -70,9 +69,9 @@ namespace JobPortalAPI.DataAccessLayer
                 {
                     cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@Name", Value = person.Name, });
                     cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@PhoneNumber", Value = person.PhoneNumber, });
-                    cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@EmailID", Value = person.EmailID, });
-                    cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@Password", Value = person.Password, });
-                    cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@ConfirmPassword", Value = person.ConfirmPassword, });
+                    cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@EmailID", Value = emailID, });
+                    cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@Password", Value = password, });
+                    cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.Int, ParameterName = "@RoleID", Value = person.RoleID});
                     int rows = await cmd.ExecuteNonQueryAsync();
 
                 }

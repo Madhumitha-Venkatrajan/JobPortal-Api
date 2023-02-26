@@ -70,16 +70,17 @@ namespace JobPortalAPI.Handler
             cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@RoleName", Value = refreshTokenModel.RoleName });
             cmd.Parameters.AddWithValue("@TokenID", SqlDbType.VarChar).Value = refreshTokenModel.TokenID;
             cmd.Parameters.AddWithValue("@RefreshToken", SqlDbType.VarChar).Value = refreshTokenModel.RefreshToken;
-            cmd.Parameters.Add(new SqlParameter("@IsActive", SqlDbType.Binary, 1));
+            cmd.Parameters.Add(new SqlParameter("@IsActive", true));
             int rows = await cmd.ExecuteNonQueryAsync();
         }
 
         private static async Task UpdateNewRefreshToken(RefreshTokenModel refreshTokenModel, SqlConnection conn)
         {
             string query = "UPDATE AppRefreshToken" +
-                " SET RefreshToken = @RefreshToken WHERE EmailID=@EmailID";
+                " SET RefreshToken = @RefreshToken WHERE EmailID = @EmailID";
 
             SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.Add(new SqlParameter() { SqlDbType = SqlDbType.VarChar, ParameterName = "@EmailID", Value = refreshTokenModel.EmailID });
             cmd.Parameters.AddWithValue("@RefreshToken", SqlDbType.VarChar).Value = refreshTokenModel.RefreshToken;
             int rows = await cmd.ExecuteNonQueryAsync();
         }
@@ -89,7 +90,7 @@ namespace JobPortalAPI.Handler
         {
 
             string query = "SELECT * FROM AppRefreshToken" +
-                           " WHERE EmailID = @EmailID AND RefreshToken= @RefreshToken";
+                           " WHERE EmailID = @EmailID AND RefreshToken = @RefreshToken";
             SqlDataReader myReader;
             var refreshTokenModel = new RefreshTokenModel();
 
