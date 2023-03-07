@@ -2,7 +2,7 @@
 
 namespace JobPortalAPI.Model
 {
-    public class Person
+    public class Person:PersonDetails
     {
         [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; }
@@ -16,6 +16,9 @@ namespace JobPortalAPI.Model
         public int RoleID { get; set; }
 
         public string? RoleName { get; set; }
+
+        
+
     }
 
 }

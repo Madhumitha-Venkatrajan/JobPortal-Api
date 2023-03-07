@@ -44,7 +44,7 @@ namespace JobPortalAPI.Controllers
 
         // GET: api/<JobPortalAPI>
         [Authorize(Roles = "Job Seeker")]
-        [HttpGet("{emailID}")]
+        [HttpGet("mundam/{emailID}")]
         public async Task<Person> Get(string emailID)
         {
             try
@@ -179,6 +179,64 @@ namespace JobPortalAPI.Controllers
 
         }
 
+        [Authorize(Roles = "Job Provider")]
+        // POST api/<JobPortalAPI>
+        [HttpPost]
+        [Route("postJob")]
+        public async Task<IResult> PostJob(Job job)
+        {
+            try
+            {
+                await _JobDataAccess.SaveJobPost(job);
+                return Results.Created("", job);
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+        }
+
+        //  [Authorize(Roles = "Job Seeker")]
+        [HttpGet]
+        [Route("ProfileDetails/{emailID}")]
+    public async Task<Person> GetProfileDetails(string emailID)
+        {
+            try
+            {
+                
+                var userInfo = await _personDataAccess.GetPersonDetails(emailID);
+                return userInfo;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+        }
+
+        [Authorize(Roles = "Job Seeker")]
+        // POST api/<JobPortalAPI>
+        [HttpPost]
+        [Route("PostPersonDetails")]
+        public async Task<IResult> PostPersonDetails(Person person)
+        {
+            try
+            {
+                await _personDataAccess.PersonDetails(person);
+                return Results.Created("",person);
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+        }
 
         // POST api/<JobPortalAPI>
         //[HttpPost]
@@ -261,25 +319,7 @@ namespace JobPortalAPI.Controllers
         }
 
 
-        [Authorize(Roles = "Job Provider")]
-        // POST api/<JobPortalAPI>
-        [HttpPost]
-        [Route("postJob")]
-        public async Task<IResult> PostJob(Job job)
-        {
-            try
-            {
-                await _JobDataAccess.SaveJobPost(job);
-                return Results.Created("", job);
-            }
-
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-
-        }
+       
 
         [Authorize(Roles = "Job Seeker")]
         // POST api/<JobPortalAPI>
