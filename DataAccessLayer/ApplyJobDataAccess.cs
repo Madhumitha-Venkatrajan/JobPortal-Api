@@ -7,7 +7,7 @@ namespace JobPortalAPI.DataAccessLayer
     public class ApplyJobDataAccess : IAppliedJob
     {
 
-        public static string sqlDataSource = @"Data Source=DESKTOP-EJMKR84\SQLEXPRESS;Initial Catalog=jobPortal;Integrated Security=True";
+        public static string sqlDataSource = @"Data Source=localhost;Initial Catalog=jobPortal;Integrated Security=True";
 
         public async Task SaveApplyJob(AppliedJob appliedJob)
         {

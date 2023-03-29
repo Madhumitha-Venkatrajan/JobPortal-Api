@@ -44,7 +44,7 @@ namespace JobPortalAPI.Controllers
 
         // GET: api/<JobPortalAPI>
         [Authorize(Roles = "Job Seeker")]
-        [HttpGet("mundam/{emailID}")]
+        [HttpGet("GetPerson/{emailID}")]
         public async Task<Person> Get(string emailID)
         {
             try

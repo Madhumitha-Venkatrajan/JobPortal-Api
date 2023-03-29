@@ -8,7 +8,7 @@ namespace JobPortalAPI.Handler
 {
     public class RefereshTokenGenerator : IRefereshTokenGenerator
     {
-        public static string sqlDataSource = @"Data Source=DESKTOP-EJMKR84\SQLEXPRESS;Initial Catalog=jobPortal;Integrated Security=True";
+        public static string sqlDataSource = @"Data Source=localhost;Initial Catalog=jobPortal;Integrated Security=True";
 
         public async Task<string> GenerateToken(string emailID, string roleName,string finaltoken)
         {
