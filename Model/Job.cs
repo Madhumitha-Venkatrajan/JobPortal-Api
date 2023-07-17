@@ -5,7 +5,7 @@
         public int CompanyID { get; set; }
         public string CompanyName { get; set; }
         public string JobTitle { get; set; }
-        public string FullTime { get; set; }
+        public string JobType { get; set; }
 
         public string Salary { get; set; }
         public string Location { get; set; }

@@ -199,10 +199,10 @@ namespace JobPortalAPI.Controllers
 
         }
 
-        //  [Authorize(Roles = "Job Seeker")]
+         [Authorize(Roles = "Job Seeker")]
         [HttpGet]
         [Route("ProfileDetails/{emailID}")]
-    public async Task<Person> GetProfileDetails(string emailID)
+   /* public async Task<Person> GetProfileDetails(string emailID)
         {
             try
             {
@@ -216,10 +216,29 @@ namespace JobPortalAPI.Controllers
                 throw;
             }
 
+        }*/
+
+
+        [Authorize(Roles = "Job Seeker")]
+        [HttpGet]
+        [Route("EditProfile/{emailID}")]
+        public async Task<Person> EditProfileDetails(string emailID)
+        {
+            try
+            {
+
+                var userInfo = await _personDataAccess.GetPersonDetails(emailID);
+                return userInfo;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
         }
 
         [Authorize(Roles = "Job Seeker")]
-        // POST api/<JobPortalAPI>
         [HttpPost]
         [Route("PostPersonDetails")]
         public async Task<IResult> PostPersonDetails(Person person)
